@@ -24,7 +24,7 @@ impl BinaryMarket {
             new_pool[outcome], new_pool[-outcome], current_product
         );
 
-        let expected_shares = (current_product as f64 / div_by as f64).floor() as u64;
+        let expected_shares = (current_product as f64 / div_by as f64).ceil() as u64;
         // println!("expected_shares: {}", expected_shares);
 
         assert!(expected_shares <= new_pool[outcome]);
@@ -48,6 +48,11 @@ impl BinaryMarket {
         self.pool = new_pool;
         bet
     }
+
+    pub fn probability_of(&self, outcome: Outcome) -> f64 {
+        let total = self.pool.yes + self.pool.no;
+        self.pool[-outcome] as f64 / total as f64
+    }
 }
 
 #[cfg(test)]
@@ -67,6 +72,8 @@ mod tests {
 
         assert_eq!(bet.outcome, Outcome::Yes);
         assert_eq!(bet.shares, 2);
+
+        assert_eq!(market.probability_of(Outcome::Yes), 0.4);
     }
 
     #[test]
