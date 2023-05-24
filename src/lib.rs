@@ -1,8 +1,11 @@
-pub mod types;
+//! Prediction market library
+//!
+//! Implements the Maniswap algorithm for binary markets. See [BinaryMarket] for details.
+//!
+//! For Maniswap description, see <https://manifoldmarkets.notion.site/Maniswap-ce406e1e897d417cbd491071ea8a0c39>.
+mod types;
 
-/// We use Maniswap, see https://manifoldmarkets.notion.site/Maniswap-ce406e1e897d417cbd491071ea8a0c39
-use serde::{Deserialize, Serialize};
-use types::{Bet, BinaryMarket, Outcome, YesNoValues};
+pub use types::{Bet, BinaryMarket, Outcome, YesNoValues};
 
 impl BinaryMarket {
     /// Returns new pool values, and the bet

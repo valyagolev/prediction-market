@@ -71,10 +71,13 @@ impl<T> IndexMut<Outcome> for YesNoValues<T> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Arbitrary))]
+/// A market with two outcomes, YES and NO.
+///
+/// This is all the information (two numbers: the ppol), that is needed to calculate bet payouts.
+/// It is responsibility of the crate's user to store bet values, and to calculate/distribute payouts.
+///
+/// Store those two numbers, and all the bets. When a new bet is being made,
+/// calculate the shares (using [BinaryMarket::buy_shares]), update the market, and store the bet.
 pub struct BinaryMarket {
     pub pool: YesNoValues<u64>,
-    // Must be an ordered Vector (allows us to avoid storing date, which the crate user's responsible for)
-    // pub bets: Vec<Bet>,
-    // todo: "add extra liquidity"
-    // todo: "rule"
 }
