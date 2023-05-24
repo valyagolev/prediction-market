@@ -102,9 +102,6 @@ mod tests {
     }
 
     proptest! {
-        // snip...
-
-        // #![proptest_config(proptest::prelude::ProptestConfig::with_cases(1))]
         #[test]
         fn no_money_created(bets: Vec<(Outcome, u8)>){
             println!("new!");
