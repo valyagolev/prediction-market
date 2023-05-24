@@ -1,0 +1,9 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 60885cf222de18e6ba2c8a2457552120e19471e083f46b9e2ca3e3517e2d6ccb # shrinks to bets = [(Yes, 1)]
+cc cfd7994f0631cc00522896a6cf14449a65b94be94b9118ddc7272e4a9921353f # shrinks to bets = [(No, 41), (Yes, 247), (Yes, 232), (Yes, 162), (Yes, 62), (No, 66), (Yes, 4), (Yes, 241), (No, 102), (Yes, 150)]
+cc 332f558636e7710a8a763f1c4f06604d7c643b87281eab13f8746605725a9dc0 # shrinks to bets = [(Yes, 40), (Yes, 143)]

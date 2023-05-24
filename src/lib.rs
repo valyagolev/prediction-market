@@ -2,22 +2,7 @@ pub mod types;
 
 /// We use Maniswap, see https://manifoldmarkets.notion.site/Maniswap-ce406e1e897d417cbd491071ea8a0c39
 use serde::{Deserialize, Serialize};
-use types::{Outcome, YesNoValues};
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Bet {
-    pub outcome: Outcome,
-    pub shares: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BinaryMarket {
-    pub pool: YesNoValues<u64>,
-    // Must be an ordered Vector (allows us to avoid storing date, which the crate user's responsible for)
-    // pub bets: Vec<Bet>,
-    // todo: "add extra liquidity"
-    // todo: "rule"
-}
+use types::{Bet, BinaryMarket, Outcome, YesNoValues};
 
 impl BinaryMarket {
     /// Returns new pool values, and the bet
@@ -25,7 +10,7 @@ impl BinaryMarket {
         // The AMM receives the order, and converts the $10 into 10 YES shares and 10 NO shares. (Since 1 YES share + 1 NO share always equals $1, the AMM can always issue shares in equal amounts for cash they receive.)
         let current_product = self.pool.yes * self.pool.no;
         // println!("current_product: {}", current_product);
-        let new_pool = self.pool.map(|pool| pool + money);
+        let mut new_pool = self.pool.map(|pool| pool + money);
         // println!("new_pool: {:?}", new_pool);
 
         // The AMM uses a formula based on the number of shares in the liquidity pool to figure out how many YES shares to give back to the trader in return for his wager:
@@ -34,18 +19,20 @@ impl BinaryMarket {
         let div_by = new_pool[-outcome];
         // println!("div_by: {}", div_by);
 
-        // println!(
-        //     "solving: ({}-x)*{} = {}",
-        //     new_pool[outcome], new_pool[-outcome], current_product
-        // );
+        println!(
+            "solving: ({}-x)*{} = {}",
+            new_pool[outcome], new_pool[-outcome], current_product
+        );
 
-        let expected_shares = (current_product as f64 / div_by as f64).ceil() as u64;
+        let expected_shares = (current_product as f64 / div_by as f64).floor() as u64;
         // println!("expected_shares: {}", expected_shares);
 
         assert!(expected_shares <= new_pool[outcome]);
 
         let share_diff = new_pool[outcome] - expected_shares;
         // println!("share_diff: {}", share_diff);
+
+        new_pool[outcome] = expected_shares;
 
         (
             new_pool,
@@ -66,6 +53,7 @@ impl BinaryMarket {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::proptest;
 
     #[test]
     fn example_from_docs() {
@@ -104,5 +92,36 @@ mod tests {
 
         assert_eq!(bet.outcome, Outcome::No);
         assert_eq!(bet.shares, 166);
+    }
+
+    proptest! {
+        // snip...
+
+        // #![proptest_config(proptest::prelude::ProptestConfig::with_cases(1))]
+        #[test]
+        fn no_money_created(bets: Vec<(Outcome, u8)>){
+            println!("new!");
+            let mut market =  BinaryMarket {
+                pool: YesNoValues::new(100, 100),
+            };
+
+            let mut total_spent = 100;
+            let mut total_shares = YesNoValues::new(0, 0);
+
+            for (outcome, money) in bets {
+                println!("{:?} {}", outcome, money);
+                let money = (money as u64) + 1;  // make it non-zero
+
+                total_spent += money;
+                let bet = market.buy_shares(outcome, money);
+                total_shares[bet.outcome] += bet.shares;
+            }
+
+            println!("total_spent: {}", total_spent);
+            println!("total_shares: {:?}", total_shares);
+
+            assert!(total_spent >= total_shares.yes);
+            assert!(total_spent >= total_shares.no);
+        }
     }
 }
